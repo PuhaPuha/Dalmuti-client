@@ -16,6 +16,7 @@ class DALMUTI_API UPlayerWidget : public UUserWidget
 	GENERATED_BODY()
 
 private:
+	// WBP_PlayerInfo의 Text변수들에 바인딩 되어있음. 미사용 중?
 	UPROPERTY(meta = (BindWidget))
 		UTextBlock* one;
 	UPROPERTY(meta = (BindWidget))
@@ -43,5 +44,6 @@ private:
 	UPROPERTY(meta = (BindWidget))
 		UTextBlock* joker;
 public:
+	// 미사용 중.
 	UTextBlock* GetHandText(int num);
 };
