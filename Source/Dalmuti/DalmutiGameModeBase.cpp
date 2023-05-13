@@ -29,12 +29,16 @@ void ADalmutiGameModeBase::BeginPlay()
 	InitialDeck[78] = 13;
 	InitialDeck[79] = 13;
 
+	
+	InitPlayerSpawnPoint();
+
 	// playerCount만큼 플레이어 스폰
 	for (int i = 0; i < player_count; i++)
 	{
-		APlayerActor* Player = GetWorld()->SpawnActor<APlayerActor>(LoadBP, FVector(0, i * 500, 0), FRotator::ZeroRotator);
+		APlayerActor* Player = GetWorld()->SpawnActor<APlayerActor>(LoadBP, PlayerSpawnPoint[i], FRotator(0, -90 * i, 0));
 		Players.Add(Player);
 		Player->player_index = i;
+		//Player->side = (Side)i;
 	}
 
 	// 콘솔에 InitialDeck 출력
@@ -48,6 +52,54 @@ void ADalmutiGameModeBase::BeginPlay()
 
 	// 모든 플레이어에게 카드 분배
 	Distribute();
+
+	// 콘솔에 분배된 카드 정보 출력, 카드 스폰
+	for (int i = 0; i < player_count; i++) {
+		UE_LOG(LogTemp, Log, TEXT("p%d"), i);
+		Players[i]->SpawnCard();
+
+		for (int j = 0; j < 13; j++)
+			UE_LOG(LogTemp, Log, TEXT("%d"), Players[i]->Hand[j]);
+	}
+	
+	for (ACard* cp : Players[0]->CardList)
+	{
+		cp->bFliping = true;
+		cp->bController = true;
+	}
+
+}
+
+void ADalmutiGameModeBase::InitPlayerSpawnPoint()
+{
+	PlayerSpawnPoint.Empty();
+	if (player_count == 4)
+	{
+		PlayerSpawnPoint.Add(FVector(-540, -500, 0));
+		PlayerSpawnPoint.Add(FVector(0 - 500, 960, 0));
+		PlayerSpawnPoint.Add(FVector(540, 0 + 500, 0));
+		PlayerSpawnPoint.Add(FVector(0 + 500, -960, 0));
+	}
+}
+
+void ADalmutiGameModeBase::HandToCenter(std::list<ACard*> HandCardList)
+{
+
+	int count = CardList.size();
+	for (ACard* cp : HandCardList)
+	{
+		cp->Destination = DeckLocation + FVector(0.f, card_offset * count, 0.f);
+		count++;
+	}
+	CardList.splice(CardList.end(), HandCardList);
+
+	count = 0;
+	for (ACard* cd : CardList)
+	{
+		cd->BackSprite->SetTranslucentSortPriority(count);
+		cd->FrontSprite->SetTranslucentSortPriority(count);
+		count++;
+	}
 }
 
 // 배열 셔플
@@ -85,14 +137,9 @@ void ADalmutiGameModeBase::Distribute()
 		Players[i]->Hand[InitialDeck[count] - 1]++;
 	}
 
-	// 콘솔에 분배된 카드 정보 출력
-	for (int i = 0; i < player_count; i++) {
-		UE_LOG(LogTemp, Log, TEXT("p%d"), i);
 
-		for (int j = 0; j < 13; j++)
-			UE_LOG(LogTemp, Log, TEXT("%d"), Players[i]->Hand[j]);
-	}
 	
+
 
 }
 
@@ -152,6 +199,52 @@ void ADalmutiGameModeBase::PlayTurn()
 		return;
 	}
 
+	std::list<ACard*> TempCardList;
+
+	if (current_player_index == 0)
+	{
+		selected_card_count = 0;
+		selected_joker_count = 0;
+
+		int check_num = 0;
+		// 선택된 플레이어 카드 체크
+		for (ACard* cp : Players[0]->CardList)
+		{
+			if (cp->bSelected)
+			{
+				if (cp->number != 13)
+				{
+					if (check_num != 0 && (cp->number != check_num))
+						return;
+					selected_card_number = cp->number;
+					check_num = cp->number;
+					selected_card_count++;
+					TempCardList.push_back(cp);
+				}
+				else if (cp->number == 13)
+				{
+					selected_joker_count++;
+					TempCardList.push_back(cp);
+				}
+			}
+		}
+	}
+
+	else
+	{
+		int count = selected_card_count + selected_joker_count;
+		for (auto CardIt = Players[current_player_index]->CardList.rbegin();
+			CardIt != Players[current_player_index]->CardList.rend(); ++CardIt)
+		{
+			TempCardList.push_front(*CardIt);
+			count--;
+			if (count <= 0)
+				break;
+		}
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("%d"), TempCardList.size());
+
 	// 자신이 새롭게 턴을 시작하는 경우.
 	if (last_card_number == 0 && last_card_count == 0)
 	{
@@ -171,6 +264,8 @@ void ADalmutiGameModeBase::PlayTurn()
 
 			last_card_count = selected_card_count + selected_joker_count;
 			ResetSkipInfoAll();
+			HandToCenter(TempCardList);
+			Players[current_player_index]->RemoveSelectedCards();
 			EndTurn();
 		}
 
@@ -193,6 +288,8 @@ void ADalmutiGameModeBase::PlayTurn()
 		{
 			last_card_number = selected_card_number;
 			ResetSkipInfoAll();
+			HandToCenter(TempCardList);
+			Players[current_player_index]->RemoveSelectedCards();
 			EndTurn();
 		}
 
@@ -223,6 +320,13 @@ void ADalmutiGameModeBase::SkipTurn()
 	{
 		last_card_count = 0;
 		last_card_number = 0;
+		for (ACard* cp : CardList)
+		{
+			cp->Destination = DeckLocation;
+			cp->BackSprite->SetTranslucentSortPriority(-1);
+			cp->FrontSprite->SetTranslucentSortPriority(-1);
+		}
+		DeckList.splice(DeckList.end(), CardList);
 		ResetSkipInfoAll();
 	}
 	EndTurn();

@@ -38,6 +38,15 @@ public:
 		int32 selected_joker_count = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		int32 skiped_player_count = 0;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		FVector DeckLocation = FVector(0.f, -500.f, 0.f);
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		FVector DeckForwardVector = FVector(1.f, 0.f, 0.f);
+	std::list<ACard*> CardList;		// 화면 중앙에 펼쳐진 카드의 리스트
+	std::list<ACard*> DeckList;		// 화면 중앙 왼쪽에 뭉쳐놓을 카드의 리스트
+	UPROPERTY(EditAnywhere)
+		int32 card_offset = 50;	// 카드 간의 거리
+
 
 	/*
 	UFUNCTION(BlueprintPure)
@@ -65,6 +74,9 @@ private:
 	bool IsValidHand(int players_index, int hand_index);	// 핸드 접근 전 NULL체크
 	template<typename Type>
 	static void ShuffleArray(FRandomStream& Stream, TArray<Type>& Array);	// 카드 덱 셔플
+	TArray<FVector> PlayerSpawnPoint;
+	void InitPlayerSpawnPoint();
+	void HandToCenter(std::list<ACard*> HandCardList);
 
 public:
 	virtual void Tick(float DeltaTime) override;
