@@ -18,7 +18,7 @@ public:
 
 	bool bController = false;
 	bool bFront = false;	// true면 카드가 앞면
-	AActor* Owner;	// 카드를 소유한 액터
+	//AActor* Owner;	// 카드를 소유한 액터
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Info)
 	int32 number = 0;	// 카드의 번호
 	bool bSelected = false;
@@ -31,10 +31,10 @@ public:
 	FVector Destination = FVector(0, 0, 0);
 	FRotator HeadingDirection = FRotator(0, 0, 0);
 
-	float offset_y = 0.f;
-	float offset_x = 0.f;
-	float current_moved_y = 0.f;
-	float current_moved_x = 0.f;
+	//float offset_y = 0.f;
+	//float offset_x = 0.f;
+	//float current_moved_y = 0.f;
+	//float current_moved_x = 0.f;
 	float rotate_duration = 2.f;
 
 	UPaperSpriteComponent* BackSprite = nullptr;
@@ -42,7 +42,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void Clicked();	// 카드 클릭시 할 동작. 목표위치 변경, bSelected 변경
-	void SetFront(int32 number);
+	//void SetFront(int32 number);
 	//UFUNCTION(BlueprintCallable)
 	//	void Flip(float Duration);
 

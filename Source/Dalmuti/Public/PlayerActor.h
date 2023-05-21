@@ -24,7 +24,6 @@ public:
 		TArray<int32> Hand;		// 손패를 나타내는 크기 13의 배열. 인덱스는 카드번호, 값은 개수를 의미함.
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Info)
 		bool bSkiped = false;
-	void SpawnCard();
 	UPROPERTY(EditAnywhere, Category = "Widget")
 		TSubclassOf<UUserWidget> WidgetClass;	// 미사용 중.
 	UPROPERTY(EditAnywhere)
@@ -37,6 +36,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool EditHand(int card_num, int card_count, int joker_count = 0);
 
+	void SpawnCard();
 	void FlipSelectedCards(int card_num, int card_count, int joker_count = 0);		// EditHand 내에서 상대방 플레이어만 호출. 오른쪽 끝의 카드를 뒤집음
 	void RemoveSelectedCards();
 	void SetPriorityAll();
@@ -45,8 +45,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	void UpdatePlayerWidget();
-	void TurnOnPlayerWidget();
+	void UpdatePlayerWidget();	//미사용중
+	void TurnOnPlayerWidget();	//미사용중
 	void SetCardOffsetAll();
 	
 public:	

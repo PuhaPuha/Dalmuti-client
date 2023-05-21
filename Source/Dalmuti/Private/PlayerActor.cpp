@@ -66,6 +66,7 @@ bool APlayerActor::EditHand(int card_num, int card_count, int joker_count)
 	return true;
 }
 
+
 // 미사용중. 추후 수정하여 컨트롤러UI에 사용
 void APlayerActor::UpdatePlayerWidget()
 {
@@ -161,10 +162,10 @@ void APlayerActor::SetCardOffsetAll()
 		Forward.Normalize();
 		FVector RightDirection = Forward.RotateAngleAxis(90.0f, FVector::UpVector);
 		Card->Destination = GetActorLocation() + RightDirection * i * card_offset + FVector(0, 0, i * 1);
-		Card->offset_y = i * card_offset;
+		//Card->offset_y = i * card_offset;
 		SetPriorityAll();
 		i++; 
-		UE_LOG(LogTemp, Log, TEXT("%f"), Card->offset_y);
+		//UE_LOG(LogTemp, Log, TEXT("%f"), Card->offset_y);
 	}
 }
 
