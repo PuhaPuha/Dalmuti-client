@@ -31,8 +31,14 @@ public:
 	std::list<ACard*> CardList;
 	//Side side = Side::bottom;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		int rank = 0;	// 패를 다털면 등수를 여기에 저장해서 끝났음을 알림
+
 	UPROPERTY()
 		class UPlayerWidget* PlayerWidget;	// 미사용 중.
+
+	bool SelectCardAI(int* selected_card_number, int* selected_card_count, int* selected_joker_count, int last_card_number, int last_card_count);
+
 	UFUNCTION(BlueprintCallable)
 	bool EditHand(int card_num, int card_count, int joker_count = 0);
 

@@ -193,6 +193,17 @@ void ADalmutiGameModeBase::RotateJokerCount(bool b_up)
 }
 void ADalmutiGameModeBase::PlayTurn()
 {
+	if (current_player_index != 0)
+	{
+		bool success = Players[current_player_index]->SelectCardAI(&selected_card_number, &selected_card_count, &selected_joker_count, 
+			last_card_number, last_card_count);
+
+		if (!success)
+		{
+			SkipTurn();
+			return;
+		}
+	}
 	if (!IsValidHand(current_player_index, selected_card_number - 1))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("PlayTurn IndexError"));
@@ -302,16 +313,63 @@ void ADalmutiGameModeBase::PlayTurn()
 	return;
 }
 
+bool ADalmutiGameModeBase::IsCurrentPlayerWin()
+{
+	TArray<int32> hand = Players[current_player_index]->Hand;
+	for (int i = 0; i < hand.Num(); i++)
+	{
+		if (hand[i] > 0)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+void ADalmutiGameModeBase::EndGame()
+{
+	game_ended = true;
+}
+
 void ADalmutiGameModeBase::EndTurn()
 {
-	current_player_index++;
-	if (current_player_index >= player_count)
-		current_player_index = 0;
+	if (IsCurrentPlayerWin())
+	{
+		win_count++;
+		Players[current_player_index]->rank = win_count;
+		Players[current_player_index]->bSkiped = true;
+	}
+
+	if (win_count == Players.Num() - 1)
+	{
+		EndGame();
+		return;
+	}
+
+	int count = 0;
+	do
+	{
+		count++;
+		current_player_index++;
+		if (current_player_index >= player_count)
+			current_player_index = 0;
+		if (count > 10)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Infinite Loop in EndTurn. Should Fix it"));
+		}
+
+		if (Players[current_player_index]->rank != 0)
+		{
+			UpdateSkipInfo();
+		}
+
+	} while (Players[current_player_index]->rank != 0);
+
 	selected_card_count = last_card_count;
 	selected_joker_count = 0;
 }
 
-void ADalmutiGameModeBase::SkipTurn()
+void ADalmutiGameModeBase::UpdateSkipInfo()
 {
 	Players[current_player_index]->bSkiped = true;
 	skiped_player_count++;
@@ -329,6 +387,11 @@ void ADalmutiGameModeBase::SkipTurn()
 		DeckList.splice(DeckList.end(), CardList);
 		ResetSkipInfoAll();
 	}
+}
+
+void ADalmutiGameModeBase::SkipTurn()
+{
+	UpdateSkipInfo();
 	EndTurn();
 }
 
@@ -336,10 +399,8 @@ void ADalmutiGameModeBase::ResetSkipInfoAll()
 {
 	for (int i = 0; i < player_count; i++)
 	{
-		if (Players.IsValidIndex(i))
+		if (Players.IsValidIndex(i) && Players[i]->rank == 0)
 			Players[i]->bSkiped = false;
-		else
-			UE_LOG(LogTemp, Warning, TEXT("ResetSkipInfoAll Index Error"));
 	}
 	skiped_player_count = 0;
 }

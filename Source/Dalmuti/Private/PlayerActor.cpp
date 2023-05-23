@@ -27,6 +27,94 @@ void APlayerActor::Tick(float DeltaTime)
 
 }
 
+// AI 낼카드 정하기. gamemode가 호출함. 낼 카드가 없으면 false 리턴
+bool APlayerActor::SelectCardAI(int* selected_card_number, int* selected_card_count, int* selected_joker_count, 
+	int last_card_number, int last_card_count)
+{
+	int type_count = 0;
+
+	if (Hand.Num() < 13)
+	{
+		// Hand 배열의 크기가 충분하지 않을 때 예외 처리
+		UE_LOG(LogTemp, Error, TEXT("Hand 배열의 크기가 충분하지 않습니다."));
+		return false;
+	}
+
+	for (int32 i = 0; i < Hand.Num(); i++)
+	{
+		if (Hand[i] > 0)
+		{
+			type_count++;
+		}
+	}
+
+	// 턴새로시작
+	if (last_card_number == 0 && last_card_count == 0)
+	{
+		// 들고있는 카드종류 3장이하일때
+		if (type_count <= 3)
+		{
+			for (int i = 0; i < Hand.Num(); i++)
+			{
+				if (Hand.IsValidIndex(i) && Hand[i] > 0)
+				{
+					*selected_card_number = i + 1;
+					*selected_card_count = Hand[i];
+					*selected_joker_count = Hand[12];
+					return true;
+				}
+			}
+		}
+
+		// 4장 이상일때. 가장 높은숫자부터 냄
+		else
+		{
+			for (int i = Hand.Num() - 2; i >= 0; i--)
+			{
+				if (Hand.IsValidIndex(i) && Hand[i] > 0)
+				{
+					*selected_card_number = i + 1;
+					*selected_card_count = Hand[i];
+					*selected_joker_count = 0;
+					return true;
+				}
+			}
+		}
+	}
+
+	// 턴 이어받는상황
+	else
+	{
+		for (int i = last_card_number - 2; i >= 0; i--)
+		{
+			if (Hand.IsValidIndex(i) && Hand[i] == last_card_count)
+			{
+				*selected_card_number = i + 1;
+				*selected_card_count = Hand[i];
+				*selected_joker_count = 0;
+				return true;
+			}
+		}
+
+		// 2~4사이의 카드면 조커 포함해서 내기
+		if (Hand.IsValidIndex(12) && Hand[12] > 0 && last_card_count > 1 && last_card_count < 5)
+		{
+			for (int i = last_card_number - 2; i >= 0; i--)
+			{
+				if (Hand.IsValidIndex(i) && Hand[i] + 1 == last_card_count)
+				{
+					*selected_card_number = i + 1;
+					*selected_card_count = Hand[i];
+					*selected_joker_count = 1;
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
 // card_num에 해당하는 숫자의 카드를 card_count만큼 감소시킴. 실패 시 false 반환
 bool APlayerActor::EditHand(int card_num, int card_count, int joker_count)
 {
