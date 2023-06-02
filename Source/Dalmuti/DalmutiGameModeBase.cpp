@@ -328,6 +328,14 @@ bool ADalmutiGameModeBase::IsCurrentPlayerWin()
 
 void ADalmutiGameModeBase::EndGame()
 {
+	for (int i = 0; i < Players.Num(); i++)
+	{
+		if (Players[i]->rank == 0)
+		{
+			Players[i]->rank = win_count + 1;
+			break;
+		}
+	}
 	game_ended = true;
 }
 

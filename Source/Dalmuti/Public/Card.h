@@ -35,7 +35,7 @@ public:
 	//float offset_x = 0.f;
 	//float current_moved_y = 0.f;
 	//float current_moved_x = 0.f;
-	float rotate_duration = 2.f;
+	float rotate_duration = 0.5f;
 
 	UPaperSpriteComponent* BackSprite = nullptr;
 	UPaperSpriteComponent* FrontSprite = nullptr;

@@ -46,7 +46,8 @@ public:
 	std::list<ACard*> DeckList;		// 화면 중앙 왼쪽에 뭉쳐놓을 카드의 리스트
 	UPROPERTY(EditAnywhere)
 		int32 card_offset = 50;	// 카드 간의 거리
-
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		bool game_ended = false;
 
 	/*
 	UFUNCTION(BlueprintPure)
@@ -69,7 +70,7 @@ protected:
 
 private:
 	int win_count = 0;
-	bool game_ended = false;
+
 	TArray<int32> InitialDeck;	// 카드 분배 전 80장의 카드를 담을 배열
 	void Distribute();	// 모든 플레이어에게 카드 분배
 	void ResetSkipInfoAll();	// 카드를 내는 플레이어가 있으면 호출해서 bSkiped 변수를 전부 false로 초기화.
