@@ -8,7 +8,7 @@ public class Dalmuti : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "Paper2D" });		// Paper2D 추가됨
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HTTP", "Json", "Paper2D" });		// Paper2D 추가됨
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
