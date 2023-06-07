@@ -260,7 +260,7 @@ void APlayerActor::SetCardOffsetAll()
 void APlayerActor::SpawnCard()
 {
 	// 스폰시킬 BP_Card 지정
-	UBlueprintGeneratedClass* LoadBP = LoadObject<UBlueprintGeneratedClass>(GetWorld(), TEXT("/Game/BP_Card.BP_Card_C")); // 경로 끝에 _C
+	UBlueprintGeneratedClass* LoadBP = LoadObject<UBlueprintGeneratedClass>(GetWorld(), TEXT("/Game/Gameplay/BP_Card.BP_Card_C")); // 경로 끝에 _C
 
 
 	FVector CardLocation = this->GetActorLocation();

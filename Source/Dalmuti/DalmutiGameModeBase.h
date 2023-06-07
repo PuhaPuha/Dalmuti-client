@@ -6,6 +6,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "PlayerActor.h"
 #include "Engine/BlueprintGeneratedClass.h"
+#include "Engine/EngineTypes.h"
 #include "DalmutiGameModeBase.generated.h"
 
 /* GameModeBase는 룰과 턴 진행, 전체 플레이어를 관리함
@@ -83,9 +84,13 @@ private:
 	void HandToCenter(std::list<ACard*> HandCardList);
 	bool IsCurrentPlayerWin();
 	void EndGame();
+	void Autoplay();
 
 public:
 	virtual void Tick(float DeltaTime) override;
+
+	UFUNCTION(BlueprintCallable)
+	int GetPlayerState(int player_num);
 
 	UFUNCTION(BlueprintCallable)
 	void RotateCardNumber(bool b_up = true);
@@ -94,11 +99,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void RotateJokerCount(bool b_up = true);
 	UFUNCTION(BlueprintCallable)
-	void PlayTurn();
+	void PlayTurn(bool isUser = false);
 	UFUNCTION(BlueprintCallable)
 	void EndTurn();
 	UFUNCTION(BlueprintCallable)
-	void SkipTurn();
+	void SkipTurn(bool isUser = false);
 
 };
 

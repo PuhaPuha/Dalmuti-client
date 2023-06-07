@@ -13,7 +13,7 @@ void ADalmutiGameModeBase::BeginPlay()
 	InitialDeck.Init(0, 80);
 
 	// 스폰시킬 BP_PlayerActor 지정
-	UBlueprintGeneratedClass* LoadBP = LoadObject<UBlueprintGeneratedClass>(GetWorld(), TEXT("/Game/BP_PlayerActor.BP_PlayerActor_C")); // 경로 끝에 _C
+	UBlueprintGeneratedClass* LoadBP = LoadObject<UBlueprintGeneratedClass>(GetWorld(), TEXT("/Game/Gameplay/BP_PlayerActor.BP_PlayerActor_C")); // 경로 끝에 _C
 
 	// InitialDeck에 80장의 카드 번호 입력
 	for (int i = 0, card = 1, count = 0; i < 78; i++)
@@ -31,14 +31,19 @@ void ADalmutiGameModeBase::BeginPlay()
 
 	
 	InitPlayerSpawnPoint();
+	ESpawnActorCollisionHandlingMethod spawninfo = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	FActorSpawnParameters spawnparam;
+	spawnparam.SpawnCollisionHandlingOverride = spawninfo;
 
 	// playerCount만큼 플레이어 스폰
 	for (int i = 0; i < player_count; i++)
 	{
-		APlayerActor* Player = GetWorld()->SpawnActor<APlayerActor>(LoadBP, PlayerSpawnPoint[i], FRotator(0, -90 * i, 0));
-		Players.Add(Player);
-		Player->player_index = i;
-		//Player->side = (Side)i;
+		APlayerActor* Player = GetWorld()->SpawnActor<APlayerActor>(LoadBP, PlayerSpawnPoint[i], FRotator(0, -90 * i, 0), spawnparam);
+		if (Player)
+		{
+			Players.Add(Player);
+			Player->player_index = i;
+		}
 	}
 
 	// 콘솔에 InitialDeck 출력
@@ -67,7 +72,16 @@ void ADalmutiGameModeBase::BeginPlay()
 		cp->bFliping = true;
 		cp->bController = true;
 	}
+	// Declare a timer handle
+	FTimerHandle TurnTimerHandle;
 
+	// Start the timer to call PlayTurn() every 2 seconds
+	GetWorldTimerManager().SetTimer(TurnTimerHandle, this, &ADalmutiGameModeBase::Autoplay, 2.0f, true);
+}
+
+void ADalmutiGameModeBase::Autoplay()
+{
+	PlayTurn();
 }
 
 void ADalmutiGameModeBase::InitPlayerSpawnPoint()
@@ -191,8 +205,11 @@ void ADalmutiGameModeBase::RotateJokerCount(bool b_up)
 			selected_joker_count = 2;
 	}
 }
-void ADalmutiGameModeBase::PlayTurn()
+void ADalmutiGameModeBase::PlayTurn(bool isUser)
 {
+	if (game_ended) return;
+	if (isUser && current_player_index != 0) return;
+	if (!isUser && current_player_index == 0) return;
 	if (current_player_index != 0)
 	{
 		bool success = Players[current_player_index]->SelectCardAI(&selected_card_number, &selected_card_count, &selected_joker_count, 
@@ -200,7 +217,7 @@ void ADalmutiGameModeBase::PlayTurn()
 
 		if (!success)
 		{
-			SkipTurn();
+			SkipTurn(isUser);
 			return;
 		}
 	}
@@ -397,8 +414,10 @@ void ADalmutiGameModeBase::UpdateSkipInfo()
 	}
 }
 
-void ADalmutiGameModeBase::SkipTurn()
+void ADalmutiGameModeBase::SkipTurn(bool isUser)
 {
+	if (isUser && current_player_index != 0) return;
+	if (!isUser && current_player_index == 0) return;
 	UpdateSkipInfo();
 	EndTurn();
 }
@@ -429,4 +448,17 @@ void ADalmutiGameModeBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+// WBP_UI에서 호출. 인자로 받아온 플레이어가 스킵이면 12, 턴진행중이면 11, 아무것도 없으면 10
+int ADalmutiGameModeBase::GetPlayerState(int player_num)
+{
+	if (Players[player_num]->rank != 0) return Players[player_num]->rank + 10;
+	if (Players[player_num]->bSkiped)
+		return 2;
+	if (player_num == current_player_index)
+	{
+		return 1;
+	}
+	return 0;
 }
