@@ -29,7 +29,7 @@ public:
 
 private:
 	UFUNCTION(BlueprintCallable, Category = "MyCategory")
-	void Foo(int n);		// 테스트용. 추후 삭제
+	int Foo(int n);		// 테스트용. 추후 삭제
 
 	void OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 	UFUNCTION(BlueprintCallable, Category = "MyCategory")

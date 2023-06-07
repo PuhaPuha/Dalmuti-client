@@ -3,9 +3,11 @@
 #include "Dalmuti101GameModeBase.h"
 
 // 테스트용. 추후 삭제
-void ADalmuti101GameModeBase::Foo(int n)
+int ADalmuti101GameModeBase::Foo(int n)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Get Base SUCCESS %d"), n);
+	
+	return n;
 }
 
 void ADalmuti101GameModeBase::OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
