@@ -10,41 +10,6 @@ int ADalmuti101GameModeBase::Foo(int n)
 	return n;
 }
 
-void ADalmuti101GameModeBase::OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
-{
-	if (bConnectedSuccessfully && Response.IsValid())
-	{
-		int32 ResponseCode = Response->GetResponseCode();
-		if (EHttpResponseCodes::IsOk(ResponseCode))
-		{
-			// The request was successful, process the response data
-			FString ResponseData = Response->GetContentAsString();
-			// Process the response data as needed
-
-			// Print the response data to the output log
-			UE_LOG(LogTemp, Warning, TEXT("HTTP Response Received: %s"), *ResponseData);
-		}
-		else
-		{
-			// The request failed, handle the error
-			FString ErrorMsg = FString::Printf(TEXT("HTTP Request failed with response code: %d"), ResponseCode);
-			// Handle the error message as needed
-
-			// Print the error message to the output log
-			UE_LOG(LogTemp, Error, TEXT("%s"), *ErrorMsg);
-		}
-	}
-	else
-	{
-		// The request was not successfully connected, handle the connection error
-		FString ErrorMsg = TEXT("HTTP Connection Error");
-		// Handle the error message as needed
-
-		// Print the error message to the output log
-		UE_LOG(LogTemp, Error, TEXT("%s"), *ErrorMsg);
-	}
-}
-
 void ADalmuti101GameModeBase::SignUpRequest(const FString& Username, const FString& Password)
 {
 	TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
@@ -63,24 +28,64 @@ void ADalmuti101GameModeBase::SignUpRequest(const FString& Username, const FStri
 	HttpRequest->ProcessRequest();
 }
 
-void ADalmuti101GameModeBase::LoginRequest(const FString& Username, const FString& Password)
+void ADalmuti101GameModeBase::LoginRequest(const FString& Username, const FString& Password, const FOnLoginResponse& OnLoginResponse)
 {
-	//Super::LoginRequest(Username, Password);
+    TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
+    JsonObject->SetStringField(TEXT("username"), Username);
+    JsonObject->SetStringField(TEXT("password"), Password);
 
-	TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
-	JsonObject->SetStringField(TEXT("username"), Username);
-	JsonObject->SetStringField(TEXT("password"), Password);
+    FString JsonString;
+    TSharedRef<TJsonWriter<>> JsonWriter = TJsonWriterFactory<>::Create(&JsonString);
+    FJsonSerializer::Serialize(JsonObject.ToSharedRef(), JsonWriter);
 
-	FString JsonString;
-	TSharedRef<TJsonWriter<>> JsonWriter = TJsonWriterFactory<>::Create(&JsonString);
-	FJsonSerializer::Serialize(JsonObject.ToSharedRef(), JsonWriter);
+    TSharedRef<IHttpRequest, ESPMode::ThreadSafe> HttpRequest = FHttpModule::Get().CreateRequest();
+    HttpRequest->SetVerb(TEXT("POST"));
+    HttpRequest->SetURL(TEXT("http://54.180.104.184:8080/api/authenticate"));
+    HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+    HttpRequest->SetContentAsString(JsonString);
 
-	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> HttpRequest = FHttpModule::Get().CreateRequest();
-	HttpRequest->SetVerb(TEXT("POST"));
-	HttpRequest->SetURL(TEXT("http://54.180.104.184:8080/api/authenticate"));
-	HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
-	HttpRequest->SetContentAsString(JsonString);
-	HttpRequest->ProcessRequest();
+    HttpRequest->OnProcessRequestComplete().BindLambda([OnLoginResponse](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+    {
+        if (bWasSuccessful && Response.IsValid())
+        {
+            int32 ResponseCode = Response->GetResponseCode();
+            if (ResponseCode == 200)
+            {
+                FString ResponseContent = Response->GetContentAsString();
+                TSharedPtr<FJsonObject> JsonObject;
+                TSharedRef<TJsonReader<>> JsonReader = TJsonReaderFactory<>::Create(ResponseContent);
+                if (FJsonSerializer::Deserialize(JsonReader, JsonObject))
+                {
+                    if (JsonObject->HasField(TEXT("token")))
+                    {
+                        FString Token = JsonObject->GetStringField(TEXT("token"));
+                        OnLoginResponse.ExecuteIfBound(true, Token);
+                        return;
+                    }
+                    else
+                    {
+                        UE_LOG(LogTemp, Warning, TEXT("Login failed: Token not found in the response."));
+                    }
+                }
+                else
+                {
+                    UE_LOG(LogTemp, Warning, TEXT("Failed to parse login response JSON."));
+                }
+            }
+            else
+            {
+                UE_LOG(LogTemp, Warning, TEXT("Login request failed with response code: %d"), ResponseCode);
+            }
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Login request failed."));
+        }
+
+        OnLoginResponse.ExecuteIfBound(false, TEXT(""));
+    });
+
+    HttpRequest->ProcessRequest();
 }
 
 void DALMUTI_API::ADalmuti101GameModeBase::OnCreateGameResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
