@@ -79,6 +79,16 @@ void ADalmutiGameModeBase::BeginPlay()
 	GetWorldTimerManager().SetTimer(TurnTimerHandle, this, &ADalmutiGameModeBase::Autoplay, 2.0f, true);
 }
 
+void ADalmutiGameModeBase::PlaySound()
+{
+	USoundBase* Sound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Gameplay/FlipSound")); // 사운드 리소스 로드
+
+	if (Sound)
+	{
+		UGameplayStatics::PlaySound2D(this, Sound, 1.0f, 1.0f, 0.0f); // 사운드 재생
+	}
+}
+
 void ADalmutiGameModeBase::Autoplay()
 {
 	PlayTurn();
@@ -294,6 +304,7 @@ void ADalmutiGameModeBase::PlayTurn(bool isUser)
 			ResetSkipInfoAll();
 			HandToCenter(TempCardList);
 			Players[current_player_index]->RemoveSelectedCards();
+			PlaySound();
 			EndTurn();
 		}
 
@@ -318,6 +329,7 @@ void ADalmutiGameModeBase::PlayTurn(bool isUser)
 			ResetSkipInfoAll();
 			HandToCenter(TempCardList);
 			Players[current_player_index]->RemoveSelectedCards();
+			PlaySound();
 			EndTurn();
 		}
 
@@ -410,6 +422,12 @@ void ADalmutiGameModeBase::UpdateSkipInfo()
 			cp->FrontSprite->SetTranslucentSortPriority(-1);
 		}
 		DeckList.splice(DeckList.end(), CardList);
+		USoundBase* Sound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Gameplay/shuffling-cards-3")); // 사운드 리소스 로드
+
+		if (Sound)
+		{
+			UGameplayStatics::PlaySound2D(this, Sound, 1.0f, 1.0f, 0.0f); // 사운드 재생
+		}
 		ResetSkipInfoAll();
 	}
 }

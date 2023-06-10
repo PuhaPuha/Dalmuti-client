@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
 #include "PlayerActor.h"
+#include "Sound/SoundBase.h"
+#include "Kismet/GameplayStatics.h"
 #include "Engine/BlueprintGeneratedClass.h"
 #include "Engine/EngineTypes.h"
 #include "DalmutiGameModeBase.generated.h"
@@ -71,7 +73,7 @@ protected:
 
 private:
 	int win_count = 0;
-
+	void PlaySound();
 	TArray<int32> InitialDeck;	// 카드 분배 전 80장의 카드를 담을 배열
 	void Distribute();	// 모든 플레이어에게 카드 분배
 	void ResetSkipInfoAll();	// 카드를 내는 플레이어가 있으면 호출해서 bSkiped 변수를 전부 false로 초기화.
