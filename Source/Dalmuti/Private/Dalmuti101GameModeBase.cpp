@@ -92,59 +92,40 @@ void DALMUTI_API::ADalmuti101GameModeBase::OnCreateGameResponseReceived(FHttpReq
 {
 	if (bConnectedSuccessfully && Response.IsValid())
 	{
-		// Check the response code to handle success or failure cases
 		int32 ResponseCode = Response->GetResponseCode();
 		if (EHttpResponseCodes::IsOk(ResponseCode))
 		{
-			// The request was successful, process the response data
 			FString ResponseData = Response->GetContentAsString();
-			// Process the response data as needed
-
-			// Print the response data to the output log
+			
 			UE_LOG(LogTemp, Warning, TEXT("Create Game Response Received: %s"), *ResponseData);
 		}
 		else
 		{
-			// The request failed, handle the error
 			FString ErrorMsg = FString::Printf(TEXT("Create Game Request failed with response code: %d"), ResponseCode);
-			// Handle the error message as needed
-
-			// Print the error message to the output log
+		
 			UE_LOG(LogTemp, Error, TEXT("%s"), *ErrorMsg);
 		}
 	}
 	else
 	{
-		// The request was not successfully connected, handle the connection error
 		FString ErrorMsg = TEXT("Create Game Connection Error");
-		// Handle the error message as needed
-
-		// Print the error message to the output log
+	
 		UE_LOG(LogTemp, Error, TEXT("%s"), *ErrorMsg);
 	}
 }
 
 void DALMUTI_API::ADalmuti101GameModeBase::SendCreateGameRequest()
 {
-	// Create an HTTP request object
 	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
 
-	// Set the request URL
 	FString Url = " http://54.180.104.184:8080/room";
 	Request->SetURL(Url);
 
-	// Set the request verb to POST
 	Request->SetVerb("POST");
 
-	// Set the request headers, if needed
-	// Request->SetHeader(TEXT("HeaderName"), TEXT("HeaderValue"));
-
-	// Set the request content, if needed
 	Request->SetContentAsString(TEXT("Room name"));
 
-	// Set the callback function to handle the response
 	Request->OnProcessRequestComplete().BindUObject(this, &ADalmuti101GameModeBase::OnCreateGameResponseReceived);
 
-	// Send the request
 	Request->ProcessRequest();
 }
